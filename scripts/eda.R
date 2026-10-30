@@ -4,32 +4,23 @@
 
 #load packages
 library(tidyverse)
-library(DBI)
-library(duckdb)
 library(ggpubr)
+library(ggeasy)
 
-# load data
-#load data
-db_path <- "data/results.db"
+## 2. load data ##
+calories_raw <-
+  readRDS("data/data_updated.rds")
 
-# 2. Conectarse en modo lectura a DuckDB
-con <- dbConnect(duckdb::duckdb(), dbdir = db_path, read_only = TRUE)
 
-# 3. Traer la tabla completa a un data.frame (tibble) en la memoria de R
-df_panel <- 
-  dbGetQuery(con, "SELECT * FROM panel_maestro") 
-
-# 4. Cerrar la conexión correctamente
-dbDisconnect(con, shutdown = TRUE)
-
-# 5. Verificamos que ya es un data.frame listo para analizar
+#data types and variables names
 calories <-
-  df_panel |> 
-  tibble() |> 
+  calories_raw |> 
+  #tibble() |> 
   mutate(iso3c = factor(iso3c),
   country = factor(area),
   income_group = factor(income_group)) |> 
-  select(1, country, 3:ncol(df_panel))
+  select(1, country, 3:ncol(calories)) |> 
+  drop_na()
 
 #custom color
 #set theme
@@ -59,7 +50,10 @@ calories |>
   #scale_color_manual(values = viridis(3)[1]) +
   easy_all_text_size(size = 10)
 
-ggsave("f1.jpg",units="cm", width=12, height=12)
+ggsave("f1.jpg",
+        units="cm",
+        width=12,
+        height=12)
 
 ## figure 2 ##
 #data frame
@@ -86,3 +80,10 @@ calories |>
   theme(legend.position = "bottom") +
   easy_all_text_size(size = 10) +
   guides(colour = guide_legend(override.aes = list(alpha = 0.8)))
+
+#save figure
+ggsave("f2.jpg",
+       units="cm",
+       width=12,
+       height=12)
+
